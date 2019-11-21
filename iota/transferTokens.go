@@ -11,7 +11,7 @@ import (
 )
 
 
-func TransferTokens(recipientAddress string) {
+func TransferTokens(seed string, keyIndex uint64, recipientAddress string) uint64 {
 
 	// get the best available PoW implementation
 	_, proofOfWorkFunc := pow.GetFastestProofOfWorkImpl()
@@ -36,7 +36,7 @@ func TransferTokens(recipientAddress string) {
 	}
 
 	// create inputs for the transfer
-	walletAddress, err := address.GenerateAddress(DefaultWalletSeed, KeyIndex, SecurityLevelMedium, true)
+	walletAddress, err := address.GenerateAddress(seed, keyIndex, SecurityLevelMedium, true)
 	must(err)
 
 	balances, err := api.GetBalances(trinary.Hashes{walletAddress}, 100)
@@ -47,7 +47,7 @@ func TransferTokens(recipientAddress string) {
 		{
 			Address:  walletAddress,
 			Security: SecurityLevelMedium,
-			KeyIndex: 0,
+			KeyIndex: keyIndex,
 			Balance:  walletBalance,
 		},
 	}
@@ -55,7 +55,7 @@ func TransferTokens(recipientAddress string) {
 	// create an address for the remainder.
 	// in this case we will have 20 iotas as the remainder, since we spend 100 from our input
 	// address and only send 80 to the recipient.
-	remainderAddress, err := address.GenerateAddress(DefaultWalletSeed, KeyIndex + 1, SecurityLevelMedium, true)
+	remainderAddress, err := address.GenerateAddress(seed, keyIndex + 1, SecurityLevelMedium, true)
 	must(err)
 
 	// we don't need to set the security level or timestamp in the options because we supply
@@ -64,7 +64,7 @@ func TransferTokens(recipientAddress string) {
 
 	// prepare the transfer by creating a bundle with the given transfers and inputs.
 	// the result are trytes ready for PoW.
-	trytes, err := api.PrepareTransfers(DefaultWalletSeed, transfers, prepTransferOpts)
+	trytes, err := api.PrepareTransfers(seed, transfers, prepTransferOpts)
 	must(err)
 
 	// you can decrease your chance of sending to a spent address by checking the address before
@@ -74,7 +74,7 @@ func TransferTokens(recipientAddress string) {
 
 	if spent[0] {
 		fmt.Println("recipient address is spent from, aborting transfer")
-		return
+		return keyIndex
 	}
 
 	// at this point the bundle trytes are signed.
@@ -90,6 +90,9 @@ func TransferTokens(recipientAddress string) {
 	fmt.Println("broadcasted bundle with tail tx hash: ", bundle.TailTransactionHash(bndl))
 	fmt.Println("remainder address: ", remainderAddress)
 	fmt.Println("recipient address: ", recipientAddress)
+	fmt.Println("new key index: ", keyIndex + 1)
+
+	return keyIndex + 1
 }
 
 func must(err error) {
