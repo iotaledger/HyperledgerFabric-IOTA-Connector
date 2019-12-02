@@ -11,11 +11,11 @@ The `GenerateRandomSeedString()` method generates a random string of the given l
 iota.GenerateRandomSeedString(length)
 ```
 #### Parameters
-length **int**
+* length **int**  
 Desired length of the seed string.
 
 #### Return values
-seed **string** 
+* seed **string**  
 Randomly generated string of the given length.
 
 #### Example usage
@@ -32,11 +32,11 @@ The `PadSideKey()` method extends short strings with "9" up until the length of 
 iota.PadSideKey()
 ```
 #### Parameters
-shortString **string**
+* shortString **string**  
 Short string that needs to be extended.
 
 #### Return values
-extendedString **string** 
+* extendedString **string**  
 String extended with "9" with the length of 81.
 
 #### Example usage
@@ -53,21 +53,21 @@ The `Publish()` method publishes a given message into a new or existing MAM chan
 iota.Publish(message, transmitter, mode, sideKey)
 ```
 #### Parameters
-message **string**
+* message **string**  
 Message to be published on the Tangle.
-transmitter *mam.Transmitter | **nil**
+* transmitter *mam.Transmitter | **nil**  
 Transmitter object, will be created if nil is provided.
-mode **string**
+* mode **string**  
 MAM channel mode. Possible values: "public", "private", "restricted".
-sideKey **string**
+* sideKey **string**  
 Encryption key for MAM message. Can be an empty string. 
 
 #### Return values
-transmitter *mam.Transmitter 
+* transmitter *mam.Transmitter  
 Transmitter object, holds the MAM channel state for eventual publishing of the further messages.
-seed **string** 
+* seed **string**  
 Randomly generated seed string of the MAM channel. 
-root **string** 
+* root **string**  
 Root address of the transaction. Used to fetch MAM message.
 
 #### Example usage
@@ -86,25 +86,25 @@ The `PublishAndReturnState()` method publishes a given message into a new or exi
 iota.PublishAndReturnState(message, useTransmitter, seed, mamState, mode, sideKey)
 ```
 #### Parameters
-message **string**
+* message **string**  
 Message to be published on the Tangle.
-useTransmitter **bool**
+* useTransmitter **bool**  
 Flag indicating that existing channel should be used to publish a nem message into. In this case the Transmitter object will be reconstructed from the provided seed and mamState string values. If false, new MAM channel will be created. 
-seed **string** 
+* seed **string**  
 Seed string of the MAM channel. Empty string if useTransmitter flag is false. 
-mamState **string**
+* mamState **string**  
 Stringified MAM channel state. Empty string if useTransmitter flag is false. 
-mode **string**
+* mode **string**  
 MAM channel mode. Possible values: "public", "private", "restricted".
-sideKey **string**
+* sideKey **string**  
 Encryption key for MAM message. Can be an empty string. 
 
 #### Return values
-mamState **string**
+* mamState **string**  
 Stringified MAM channel state for eventual further messages.
-root **string**
+* root **string**  
 Root address of the transaction. Used to fetch MAM message.
-seed **string**
+* seed **string**  
 Seed string (randomly generated for a new channel) of the MAM channel. 
 
 #### Example usage
@@ -139,15 +139,15 @@ The `Fetch()` method retrieves messages from the MAM channel. Messages of a rest
 iota.Fetch(root, mode, sideKey)
 ```
 #### Parameters
-root **string** 
+* root **string**  
 Root address of the initial MAM channel transaction.
-mode **string**
+* mode **string**  
 MAM channel mode. Possible values: "public", "private", "restricted".
-sideKey **string**
+* sideKey **string**  
 Decryption key for MAM messages. Can be an empty string. 
 
 #### Return values
-messages **[]string**
+* messages **[]string**  
 Array of decoded and decrypted messages from the MAM channel.
 
 #### Example usage
@@ -168,9 +168,9 @@ The `CreateWallet()` method generates and returns a new seed and address of an e
 iota.CreateWallet()
 ```
 #### Return values
-walletAddress **string**
+* walletAddress **string**  
 Root address of the wallet. Used to receive IOTA tokens and balance check.
-seed **string** 
+* seed **string**  
 Seed string (randomly generated) of the wallet. Used to send IOTA tokens.
 
 #### Example usage
@@ -187,15 +187,15 @@ The `TransferTokens()` method transfers IOTA tokens from the existing wallet to 
 iota.TransferTokens(seed, keyIndex, recipientAddress)
 ```
 #### Parameters
-seed **string**
+* seed **string**  
 Seed string of the own wallet.
-keyIndex **uint64**
+* keyIndex **uint64**  
 Index of the current unspent address. Starts with 0 for a new wallet, increases by 1 after each outgoing transaction.
-recipientAddress **string**
+* recipientAddress **string**  
 Wallet address of the recipient. 
 
 #### Return values
-keyIndex **uint64**
+* keyIndex **uint64**  
 Index of the next unspent address. 
 
 #### Example usage
