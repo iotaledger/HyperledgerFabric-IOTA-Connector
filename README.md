@@ -460,14 +460,14 @@ In addition, if you want to output the MamState values, to be able to perform ot
 ![image](https://user-images.githubusercontent.com/18738760/69976811-e818c000-1529-11ea-9f7b-dcece5f14ff8.png)
 
 
-Sending Payments
-Supply chain projects might benefit from the built-in payment solution, where payments for certain services and goods can be sent between supply chain participants.
-One possible use case could be when retailers or end consumers send payments to the producers, logistics and fulfillment providers for the ordered assets.
+## Sending Payments
+Supply chain projects might benefit from the built-in payment solution, where payments for certain services and goods can be sent between supply chain participants.  
+One possible use case could be when retailers or end consumers send payments to the producers, logistics and fulfillment providers for the ordered assets.  
 Since none of the Hyperledger projects support cryptocurrency or any other type of payments, IOTA connector can be used to perform fee-less payments between participants at the moment where a smart contract confirms successful transaction.
-To send payment using the IOTA wallet, you will need to store wallet seed and keyIndex on the ledger. Seed is used to initiate a transaction, and keyIndex is specific for IOTA implementation and represents the index of the current wallet address, which holds the tokens.
-After every outgoing payment transaction, the remaining tokens are transferred to the next address in order to prevent double-spending. The index of the new address (called remainderAddress) should be stored on the ledger and used for the next outgoing payment. Incoming payments do not trigger address or index change.
-In the example, we will maintain only one wallet for outgoing payments. This wallet will be assigned to the retailer, who is the end consumer of the asset in this supply chain project.
-The payment will be sent to the previous asset holder each time the holder is changed, which indicates asset movement towards the end consumer. In other words, once a producer prepares a container for shipment and transfer it over to a freight forwarder, the retailer will pay to the producer in IOTA tokens. Then, once a freight forwarder delivers the container to the next destination, the retailer will transfer IOTA tokens to pay for this service.
+To send payment using the IOTA wallet, you will need to store wallet `seed` and `keyIndex` on the ledger. `Seed` is used to initiate a transaction, and `keyIndex` is specific for IOTA implementation and represents the index of the current `wallet address`, which holds the tokens.  
+After every outgoing payment transaction, the remaining tokens are transferred to the next address in order to prevent double-spending. The index of the new address (called `remainderAddress`) should be stored on the ledger and used for the next outgoing payment. Incoming payments do not trigger address or index change.  
+In the example, we will maintain only one wallet for outgoing payments. This wallet will be assigned to the retailer, who is the end consumer of the asset in this supply chain project.  
+The payment will be sent to the previous asset holder each time the holder is changed, which indicates asset movement towards the end consumer. In other words, once a producer prepares a container for shipment and transfer it over to a freight forwarder, the retailer will pay to the producer in IOTA tokens. Then, once a freight forwarder delivers the container to the next destination, the retailer will transfer IOTA tokens to pay for this service.  
 All possible participants in this sample of a supply chain project are defined upon initialisation of the ledger. For simplicity, we assume that there is only one participant with the role of “Producer”, “Shipper” and so on.  
 ![image](https://user-images.githubusercontent.com/18738760/69976831-f1099180-1529-11ea-89c5-981cf0f36ff9.png)
 
@@ -476,48 +476,53 @@ We will start with the definition of the structure for the wallet object
 ![image](https://user-images.githubusercontent.com/18738760/69976842-f535af00-1529-11ea-84b9-7d5f117d17da.png)
 
 
-This structure contains seed and keyIndex as described above. In addition, it also contains the actual address where tokens are currently stored. You can perform balance check to ensure sufficient balance of the wallet. Enter your wallet address on this page to check the current balance.
-Next, we will extend the existing Participant structure by adding the IotaWallet part into it  
+This structure contains `seed` and `keyIndex` as described above. In addition, it also contains the actual address where tokens are currently stored. You can perform balance check to ensure sufficient balance of the wallet. Enter your wallet address on [this page](https://thetangle.org/) to check the current balance.  
+Next, we will extend the existing `Participant` structure by adding the `IotaWallet` part into it  
 ![image](https://user-images.githubusercontent.com/18738760/69976856-fd8dea00-1529-11ea-92e3-6406f4cb8982.png)
 
 
-And then we will generate a new empty wallet and add wallet information to every participant record.
+And then we will generate a new empty wallet and add wallet information to every participant record.  
 To generate a new wallet, you can use a function from the IOTA connector:
+```
 walletAddress, walletSeed := iota.CreateWallet()  
+```
 ![image](https://user-images.githubusercontent.com/18738760/69976864-02529e00-152a-11ea-8bde-1d5ebfb44f22.png)
 
 
-Since we generate a new wallet for every record, we set the keyIndex value to 0. If you are about to use existing wallets, please adjust keyIndex values accordingly.
-The generated wallets are empty and currently can only receive IOTA tokens.
-In order to send tokens, you need to maintain at least one wallet funded with IOTA tokens.
-Wallet data of this wallet should be stored on the ledger.
-You can provide wallet data upon ledger initialisation, or you can modify values in the configuration file under chaincode/iota/config.go  
+Since we generate a new wallet for every record, we set the `keyIndex` value to **0**. If you are about to use existing wallets, please adjust `keyIndex` values accordingly.  
+The generated wallets are empty and currently can only receive IOTA tokens.  
+In order to send tokens, you need to maintain at least one wallet funded with IOTA tokens.  
+Wallet data of this wallet should be stored on the ledger.  
+You can provide wallet data upon ledger initialisation, or you can modify values in the configuration file under `chaincode/iota/config.go` 
 ![image](https://user-images.githubusercontent.com/18738760/69976875-08e11580-152a-11ea-8db0-9437927f24ff.png)
 
 
-To store a wallet on the ledger, please update the initLedger() function by adding the following code. You can replace values for iota.DefaultWalletSeed and iota.DefaultWalletKeyIndex with respective values of your wallet.  
+To store a wallet on the ledger, please update the `initLedger()` function by adding the following code. You can replace values for `iota.DefaultWalletSeed` and `iota.DefaultWalletKeyIndex` with respective values of your wallet.  
 ![image](https://user-images.githubusercontent.com/18738760/69976897-10a0ba00-152a-11ea-8151-fdb810242605.png)
 
 
 Once the wallets are configured, we can add functionality to perform payments. This consists of 3 simple steps:
-Identify function in your smart contract which should trigger payment.
-Identify the payment recipient. Retrieve wallet address of the recipient.
-Identify the payment sender. Retrieve wallet seed and keyIndex of the sender. Perform token transfer, then update keyIndex to the new value and store it on the ledger.
-In our example, we will perform payments once the asset holder was changed. So, the function that triggers payments called changeContainerHolder(). Payment recipient is the previous container holder. So, we need to preserve the holder value before changing, to be able to retrieve the corresponding wallet data from the ledger.
-On the screenshot below you see the required updates to the function. Container data is retrieved based on the provided ID. Before the holder is reassigned, we store the original holder value. Later we query the ledger in order to get the wallet address of the original container holder.  
+1. Identify function in your smart contract which should trigger payment.
+2. Identify the payment recipient. Retrieve `wallet address` of the recipient.
+3. Identify the payment sender. Retrieve wallet `seed` and `keyIndex` of the sender. Perform token transfer, then update `keyIndex` to the new value and store it on the ledger.  
+
+In our example, we will perform payments once the asset holder was changed. So, the function that triggers payments called `changeContainerHolder()`. Payment recipient is the previous container holder. So, we need to preserve the holder value before changing, to be able to retrieve the corresponding wallet data from the ledger.
+On the screenshot below you see the required updates to the function. Container data is retrieved based on the provided ID. Before the holder is reassigned, we store the original holder value. Later we query the ledger in order to get the `wallet address` of the original container holder.  
 ![image](https://user-images.githubusercontent.com/18738760/69976913-16969b00-152a-11ea-9fe0-02324fbdc043.png)
 
 
-For step 3 we will request the IOTA wallet data of the retailer. Then we will trigger the following function and submit seed and keyIndex values of the sender and address value of the recipient.
+For step 3 we will request the IOTA wallet data of the retailer. Then we will trigger the following function and submit `seed` and `keyIndex` values of the sender and address value of the recipient.
+```
 iota.TransferTokens(seed, keyIndex, address)
-Once this is done, we just need to update keyIndex to the new value and store it on the ledger.  
+```
+Once this is done, we just need to update `keyIndex` to the new value and store it on the ledger.  
 ![image](https://user-images.githubusercontent.com/18738760/69976930-1c8c7c00-152a-11ea-9597-0046423f8dfe.png)
 
 
 Token transfer usually requires a few seconds in order to be confirmed. Please do not attempt to trigger multiple transfers from the same wallet within a very short timeframe (less than 10 seconds), as it will result into “Invalid balance” error, and wallet keyIndex should be reset to previous value manually.
-As always, you can check the status of the token transfer on this page by entering the wallet address.
-Following the open sourcing of the IOTA Connector, we will be seeding the capabilities as a Hyperledger Bridge to the Linux Foundation. At the current time we’re working with the Linux Foundation to ensure the code is being seeding into the project that it will be most relevant for and look to finalize that decision in the coming weeks.
-Resources
-The source code of the IOTA Connector can be downloaded from this open-source GitHub repository.
-The supplementary iota.go library, that need to be located within the same chaincode folder, can be downloaded from this open-source GitHub repository.
-The demo project used to showcase the IOTA Connector integration is open-source and can be found in this GitHub repository.
+As always, you can check the status of the token transfer on [this page](https://thetangle.org/) by entering the wallet address.
+
+
+# Resources
+* The supplementary iota.go library, that need to be located within the same chaincode folder, can be downloaded from this open-source [GitHub repository](https://github.com/iotaledger/iota.go).
+* The demo project used to showcase the IOTA Connector integration is open-source and can be found in this [GitHub repository](https://github.com/sobolev-alexey/hyperledger-fabric-demo-app).
