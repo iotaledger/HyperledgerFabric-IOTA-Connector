@@ -368,6 +368,9 @@ chmod a+x startFabric.sh
 
 
 # How to Integrate the IOTA Connectors
+
+> You can download the source code files for Hyperledger Fabric chaincode IOTA connector from this public [GitHub repository](https://github.com/sobolev-alexey/hyperledger-fabric-demo-app).
+
 We will start with a simple chaincode file suitable for a supply chain project and will add a few IOTA connectors one by one with a short usage description.  
 
 The plain Hyperledger Fabric chaincode written in Go has a namespace, which can be defined is the `docker-compose.yml` file under volumes:  
