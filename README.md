@@ -109,7 +109,7 @@ Seed string (randomly generated for a new channel) of the MAM channel.
 
 #### Example usage
 
-**New channel**
+New channel
 ```
 mamState, root, seed := iota.PublishAndReturnState(string(payloadAsBytes), false, "", "", mode, sideKey)
 
@@ -117,7 +117,7 @@ iotaPayload := IotaPayload{Seed: seed, MamState: mamState, Root: root, Mode: mod
 iotaPayloadAsBytes, _ := json.Marshal(iotaPayload)
 APIstub.PutState("IOTA", iotaPayloadAsBytes)
 ```
-**Appending to an existing channel**
+Appending to an existing channel
 ```
 iotaPayloadAsBytes, _ := APIstub.GetState("IOTA")
 iotaPayload := IotaPayload{}
